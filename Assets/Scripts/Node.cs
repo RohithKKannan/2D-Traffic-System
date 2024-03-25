@@ -11,7 +11,11 @@ namespace TS
         [SerializeField] private LineRenderer lineRenderer;
 
         private Graph graph;
+
         private int nodeID;
+        private bool isDragging;
+        private Vector3 startPosition;
+        private Vector3 dragOffset;
 
         private List<Node> adjacentNodes = new();
         private List<int> weights = new();
@@ -62,10 +66,30 @@ namespace TS
             return weights[adjacentNodes.IndexOf(_node)];
         }
 
+        private void OnMouseDown()
+        {
+            dragOffset = transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            startPosition = transform.position;
+            isDragging = true;
+        }
+
+        private void OnMouseDrag()
+        {
+            if (isDragging)
+            {
+                Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition) + dragOffset;
+                newPosition.z = transform.position.z;
+                transform.position = newPosition;
+            }
+        }
+
         [ContextMenu("Click Node")]
         private void OnMouseUp()
         {
             graph.OnNodeSelect?.Invoke(nodeID);
+
+            isDragging = false;
         }
 
         private void Update()
