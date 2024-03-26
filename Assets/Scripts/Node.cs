@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Unity.VisualScripting;
 
 namespace TS
 {
@@ -63,6 +64,24 @@ namespace TS
             newLineRenderer.material.color = Color.yellow;
 
             return newLineRenderer;
+        }
+
+        public void RemoveAdjacentNode(Node _node2)
+        {
+            if (!adjacentNodes.Contains(_node2))
+            {
+                Debug.Log("Adjacent node not found!");
+                return;
+            }
+
+            int index = adjacentNodes.IndexOf(_node2);
+
+            LineRenderer lineRenderer = lineRenderers[index];
+            lineRenderers.Remove(lineRenderer);
+            GameObject.Destroy(lineRenderer.gameObject);
+
+            adjacentNodes.Remove(_node2);
+            weights.RemoveAt(index);
         }
 
         public int GetWeightToNode(Node _node)

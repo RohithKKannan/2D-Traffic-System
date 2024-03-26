@@ -43,19 +43,19 @@ namespace TS
         [ContextMenu("Draw Mode")]
         public void EnterDrawMode()
         {
-            OnNodeSelect += NodeSelect1;
+            OnNodeSelect += NodeDrawSelect1;
             Debug.Log("Click on Node 1!");
         }
 
-        public void NodeSelect1(int _nodeID)
+        public void NodeDrawSelect1(int _nodeID)
         {
             selectedNode1 = nodes[_nodeID];
-            OnNodeSelect -= NodeSelect1;
-            OnNodeSelect += NodeSelect2;
+            OnNodeSelect -= NodeDrawSelect1;
+            OnNodeSelect += NodeDrawSelect2;
             Debug.Log("Click on Node 2!");
         }
 
-        public void NodeSelect2(int _nodeID)
+        public void NodeDrawSelect2(int _nodeID)
         {
             if (nodes[_nodeID] == selectedNode1)
             {
@@ -64,7 +64,7 @@ namespace TS
             }
 
             selectedNode2 = nodes[_nodeID];
-            OnNodeSelect -= NodeSelect2;
+            OnNodeSelect -= NodeDrawSelect2;
 
             DrawLine(selectedNode1, selectedNode2, 1);
 
@@ -78,6 +78,46 @@ namespace TS
         {
             nodeA.AddAdjacentNode(nodeB, weight);
             nodeB.AddAdjacentNode(nodeA, weight);
+        }
+
+        [ContextMenu("Remove Mode")]
+        public void EnterRemoveMode()
+        {
+            OnNodeSelect += NodeRemoveSelect1;
+            Debug.Log("Click on Node 1!");
+        }
+
+        public void NodeRemoveSelect1(int _nodeID)
+        {
+            selectedNode1 = nodes[_nodeID];
+            OnNodeSelect -= NodeRemoveSelect1;
+            OnNodeSelect += NodeRemoveSelect2;
+            Debug.Log("Click on Node 2!");
+        }
+
+        public void NodeRemoveSelect2(int _nodeID)
+        {
+            if (nodes[_nodeID] == selectedNode1)
+            {
+                Debug.Log("Node 1 cannot be Node 2!");
+                return;
+            }
+
+            selectedNode2 = nodes[_nodeID];
+            OnNodeSelect -= NodeRemoveSelect2;
+
+            RemoveLine(selectedNode1, selectedNode2);
+
+            Debug.Log("Nodes removed!");
+
+            selectedNode1 = null;
+            selectedNode2 = null;
+        }
+
+        public void RemoveLine(Node nodeA, Node nodeB)
+        {
+            nodeA.RemoveAdjacentNode(nodeB);
+            nodeB.RemoveAdjacentNode(nodeA);
         }
     }
 }
