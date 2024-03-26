@@ -20,10 +20,12 @@ namespace TS
         private Vector3 dragOffset;
 
         private List<Node> adjacentNodes = new();
-        private List<int> weights = new();
+        private List<float> weights = new();
         private List<LineRenderer> lineRenderers = new();
 
         private Vector3 mousePosition;
+
+        public int NodeID => nodeID;
 
         public void SetGraph(Graph _graph)
         {
@@ -36,13 +38,15 @@ namespace TS
             nodeLabel.text = nodeID.ToString();
         }
 
-        public void AddAdjacentNode(Node _node, int _weight)
+        public void AddAdjacentNode(Node _node)
         {
             if (adjacentNodes.Contains(_node))
             {
                 Debug.Log("Node already connected!");
                 return;
             }
+
+            float _weight = Vector3.Distance(this.transform.position, _node.transform.position);
 
             adjacentNodes.Add(_node);
             weights.Add(_weight);
@@ -84,7 +88,7 @@ namespace TS
             weights.RemoveAt(index);
         }
 
-        public int GetWeightToNode(Node _node)
+        public float GetWeightToNode(Node _node)
         {
             if (!adjacentNodes.Contains(_node))
                 return -1;
@@ -124,6 +128,11 @@ namespace TS
             {
                 lineRenderers[i].SetPosition(0, this.transform.position);
                 lineRenderers[i].SetPosition(1, adjacentNodes[i].transform.position);
+            }
+
+            for (int i = 0; i < adjacentNodes.Count; i++)
+            {
+                weights[i] = Vector3.Distance(this.transform.position, adjacentNodes[i].transform.position);
             }
         }
     }

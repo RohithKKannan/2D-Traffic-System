@@ -13,9 +13,12 @@ namespace TS
         private int nodeCount;
 
         public UnityAction<int> OnNodeSelect;
+        public UnityAction<Node, Node> OnNodeClickComplete;
 
         private Node selectedNode1;
         private Node selectedNode2;
+
+        private bool isClicking;
 
         [ContextMenu("Add New Node")]
         public void AddNewNode()
@@ -43,59 +46,50 @@ namespace TS
         [ContextMenu("Draw Mode")]
         public void EnterDrawMode()
         {
-            OnNodeSelect += NodeDrawSelect1;
-            Debug.Log("Click on Node 1!");
-        }
-
-        public void NodeDrawSelect1(int _nodeID)
-        {
-            selectedNode1 = nodes[_nodeID];
-            OnNodeSelect -= NodeDrawSelect1;
-            OnNodeSelect += NodeDrawSelect2;
-            Debug.Log("Click on Node 2!");
-        }
-
-        public void NodeDrawSelect2(int _nodeID)
-        {
-            if (nodes[_nodeID] == selectedNode1)
-            {
-                Debug.Log("Node 1 cannot be Node 2!");
+            if (isClicking)
                 return;
-            }
 
-            selectedNode2 = nodes[_nodeID];
-            OnNodeSelect -= NodeDrawSelect2;
-
-            DrawLine(selectedNode1, selectedNode2, 1);
-
-            Debug.Log("Nodes connected!");
-
-            selectedNode1 = null;
-            selectedNode2 = null;
-        }
-
-        public void DrawLine(Node nodeA, Node nodeB, int weight)
-        {
-            nodeA.AddAdjacentNode(nodeB, weight);
-            nodeB.AddAdjacentNode(nodeA, weight);
+            OnNodeClickComplete += DrawLine;
+            SelectNodes();
         }
 
         [ContextMenu("Remove Mode")]
         public void EnterRemoveMode()
         {
-            OnNodeSelect += NodeRemoveSelect1;
+            if (isClicking)
+                return;
+
+            OnNodeClickComplete += RemoveLine;
+            SelectNodes();
+        }
+
+        [ContextMenu("Print Weight")]
+        public void GetWeightMode()
+        {
+            if (isClicking)
+                return;
+
+            OnNodeClickComplete += GetWeight;
+            SelectNodes();
+        }
+
+        private void SelectNodes()
+        {
+            OnNodeSelect += NodeSelect1;
+            isClicking = true;
+
             Debug.Log("Click on Node 1!");
         }
 
-        public void NodeRemoveSelect1(int _nodeID)
+        private void NodeSelect1(int _nodeID)
         {
             selectedNode1 = nodes[_nodeID];
-            OnNodeSelect -= NodeRemoveSelect1;
-            OnNodeSelect += NodeRemoveSelect2;
+            OnNodeSelect -= NodeSelect1;
+            OnNodeSelect += NodeSelect2;
             Debug.Log("Click on Node 2!");
         }
 
-        public void NodeRemoveSelect2(int _nodeID)
+        private void NodeSelect2(int _nodeID)
         {
             if (nodes[_nodeID] == selectedNode1)
             {
@@ -104,20 +98,39 @@ namespace TS
             }
 
             selectedNode2 = nodes[_nodeID];
-            OnNodeSelect -= NodeRemoveSelect2;
+            OnNodeSelect -= NodeSelect2;
 
-            RemoveLine(selectedNode1, selectedNode2);
+            OnNodeClickComplete?.Invoke(selectedNode1, selectedNode2);
 
-            Debug.Log("Nodes removed!");
+            OnNodeClickComplete = null;
 
             selectedNode1 = null;
             selectedNode2 = null;
+
+            isClicking = false;
+        }
+
+        public void DrawLine(Node nodeA, Node nodeB)
+        {
+            nodeA.AddAdjacentNode(nodeB);
+            nodeB.AddAdjacentNode(nodeA);
         }
 
         public void RemoveLine(Node nodeA, Node nodeB)
         {
             nodeA.RemoveAdjacentNode(nodeB);
             nodeB.RemoveAdjacentNode(nodeA);
+        }
+
+        public void GetWeight(Node nodeA, Node nodeB)
+        {
+            float weightA = nodeA.GetWeightToNode(nodeB);
+            float weightB = nodeB.GetWeightToNode(nodeA);
+
+            if (weightA != weightB)
+                Debug.LogWarning($"Weight discrepancies! {weightA} & {weightB}");
+            else
+                Debug.Log($"Weight between {nodeA.NodeID} and {nodeB.NodeID} is {weightA}");
         }
     }
 }
