@@ -8,7 +8,8 @@ namespace TS
     public class Node : MonoBehaviour
     {
         [SerializeField] private TMP_Text nodeLabel;
-        [SerializeField] private LineRenderer lineRenderer;
+        [SerializeField] private LineRenderer linePrefab;
+        [SerializeField] private Transform lineParent;
 
         private Graph graph;
 
@@ -19,6 +20,7 @@ namespace TS
 
         private List<Node> adjacentNodes = new();
         private List<int> weights = new();
+        private List<LineRenderer> lineRenderers = new();
 
         private Vector3 mousePosition;
 
@@ -44,18 +46,23 @@ namespace TS
             adjacentNodes.Add(_node);
             weights.Add(_weight);
 
-            DrawLineToNode(_node);
+            lineRenderers.Add(DrawLineToNode(_node));
         }
 
-        private void DrawLineToNode(Node _node2)
+        private LineRenderer DrawLineToNode(Node _node2)
         {
-            lineRenderer.positionCount++;
+            LineRenderer newLineRenderer = GameObject.Instantiate<LineRenderer>(linePrefab, lineParent);
 
-            lineRenderer.SetPosition(lineRenderer.positionCount - 1, _node2.transform.position);
+            newLineRenderer.positionCount = 2;
 
-            lineRenderer.startWidth = 0.1f;
-            lineRenderer.endWidth = 0.1f;
-            lineRenderer.material.color = Color.yellow;
+            newLineRenderer.SetPosition(0, this.transform.position);
+            newLineRenderer.SetPosition(1, _node2.transform.position);
+
+            newLineRenderer.startWidth = 0.1f;
+            newLineRenderer.endWidth = 0.1f;
+            newLineRenderer.material.color = Color.yellow;
+
+            return newLineRenderer;
         }
 
         public int GetWeightToNode(Node _node)
@@ -94,10 +101,10 @@ namespace TS
 
         private void Update()
         {
-            lineRenderer.SetPosition(0, this.transform.position);
-            for (int i = 1; i <= adjacentNodes.Count; i++)
+            for (int i = 0; i < lineRenderers.Count; i++)
             {
-                lineRenderer.SetPosition(i, adjacentNodes[i - 1].transform.position);
+                lineRenderers[i].SetPosition(0, this.transform.position);
+                lineRenderers[i].SetPosition(1, adjacentNodes[i].transform.position);
             }
         }
     }
