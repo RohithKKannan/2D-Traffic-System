@@ -11,6 +11,8 @@ namespace TS
         [SerializeField] private TMP_Text nodeLabel;
         [SerializeField] private LineRenderer linePrefab;
         [SerializeField] private Transform lineParent;
+        [SerializeField] private Gradient redGradient;
+        [SerializeField] private Gradient yellowGradient;
 
         private Graph graph;
 
@@ -26,6 +28,17 @@ namespace TS
         private Vector3 mousePosition;
 
         public int NodeID => nodeID;
+        public List<Node> AdjacentNodes => adjacentNodes;
+        public List<float> Weights => weights;
+
+        private void OnDestroy()
+        {
+            while (adjacentNodes.Count > 0)
+            {
+                adjacentNodes[adjacentNodes.Count - 1].RemoveAdjacentNode(this);
+                RemoveAdjacentNode(adjacentNodes[adjacentNodes.Count - 1]);
+            }
+        }
 
         public void SetGraph(Graph _graph)
         {
@@ -65,7 +78,7 @@ namespace TS
 
             newLineRenderer.startWidth = 0.1f;
             newLineRenderer.endWidth = 0.1f;
-            newLineRenderer.material.color = Color.yellow;
+            newLineRenderer.colorGradient = yellowGradient;
 
             return newLineRenderer;
         }
@@ -86,6 +99,29 @@ namespace TS
 
             adjacentNodes.Remove(_node2);
             weights.RemoveAt(index);
+        }
+
+        public void HighlightLine(Node _node2)
+        {
+            if (!adjacentNodes.Contains(_node2))
+            {
+                Debug.Log("Adjacent node not found!");
+                return;
+            }
+
+            int index = adjacentNodes.IndexOf(_node2);
+
+            LineRenderer lineRenderer = lineRenderers[index];
+
+            lineRenderer.colorGradient = redGradient;
+        }
+
+        public void ResetLineColors()
+        {
+            foreach (LineRenderer lineRenderer in lineRenderers)
+            {
+                lineRenderer.colorGradient = yellowGradient;
+            }
         }
 
         public float GetWeightToNode(Node _node)
