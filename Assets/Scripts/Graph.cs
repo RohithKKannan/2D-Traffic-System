@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -27,7 +28,7 @@ namespace TS
         {
             gameManager.UIManager.AddNodeButton.onClick.AddListener(AddNewNode);
             gameManager.UIManager.RemoveNodeButton.onClick.AddListener(RemoveNode);
-            gameManager.UIManager.ClearNodesButton.onClick.AddListener(ClearNodes);
+            // gameManager.UIManager.ClearNodesButton.onClick.AddListener(ClearNodes);
             gameManager.UIManager.DrawModeButton.onClick.AddListener(EnterDrawMode);
             gameManager.UIManager.RemoveModeButton.onClick.AddListener(EnterRemoveMode);
             gameManager.UIManager.GetWeightButton.onClick.AddListener(GetWeightMode);
@@ -38,7 +39,7 @@ namespace TS
         {
             gameManager.UIManager.AddNodeButton.onClick.RemoveListener(AddNewNode);
             gameManager.UIManager.RemoveNodeButton.onClick.RemoveListener(RemoveNode);
-            gameManager.UIManager.ClearNodesButton.onClick.RemoveListener(ClearNodes);
+            // gameManager.UIManager.ClearNodesButton.onClick.RemoveListener(ClearNodes);
             gameManager.UIManager.DrawModeButton.onClick.RemoveListener(EnterDrawMode);
             gameManager.UIManager.RemoveModeButton.onClick.RemoveListener(EnterRemoveMode);
             gameManager.UIManager.GetWeightButton.onClick.RemoveListener(GetWeightMode);
@@ -49,6 +50,12 @@ namespace TS
 
         public void AddNewNode()
         {
+            if (isClicking)
+            {
+                CancelSelection();
+                return;
+            }
+
             Node newNode = GameObject.Instantiate<Node>(nodePrefab);
             newNode.SetGraph(this);
             newNode.SetNodeID(nodeCount++);
@@ -58,6 +65,12 @@ namespace TS
 
         public void RemoveNode()
         {
+            if (isClicking)
+            {
+                CancelSelection();
+                return;
+            }
+
             if (nodes.Count == 0)
                 return;
 
@@ -70,6 +83,12 @@ namespace TS
 
         public void ClearNodes()
         {
+            if (isClicking)
+            {
+                CancelSelection();
+                return;
+            }
+
             if (nodes.Count == 0)
                 return;
 
@@ -90,37 +109,61 @@ namespace TS
         public void EnterDrawMode()
         {
             if (isClicking)
+            {
+                CancelSelection();
                 return;
+            }
 
             OnNodeClickComplete += DrawLine;
             SelectNodes();
+
+            gameManager.UIManager.ModeInfoLabel.text = "Draw Line";
+            gameManager.UIManager.ModeInfoLabel.gameObject.SetActive(true);
         }
 
         public void EnterRemoveMode()
         {
             if (isClicking)
+            {
+                CancelSelection();
                 return;
+            }
 
             OnNodeClickComplete += RemoveLine;
             SelectNodes();
+
+            gameManager.UIManager.ModeInfoLabel.text = "Remove Line";
+            gameManager.UIManager.ModeInfoLabel.gameObject.SetActive(true);
         }
 
         public void GetWeightMode()
         {
             if (isClicking)
+            {
+                CancelSelection();
                 return;
+            }
 
             OnNodeClickComplete += GetWeight;
             SelectNodes();
+
+            gameManager.UIManager.ModeInfoLabel.text = "Get Weight";
+            gameManager.UIManager.ModeInfoLabel.gameObject.SetActive(true);
         }
 
         public void FindShortestPath()
         {
             if (isClicking)
+            {
+                CancelSelection();
                 return;
+            }
 
             OnNodeClickComplete += GetShortestPath;
             SelectNodes();
+
+            gameManager.UIManager.ModeInfoLabel.text = "Find Shortest Path";
+            gameManager.UIManager.ModeInfoLabel.gameObject.SetActive(true);
         }
 
         #endregion
@@ -133,6 +176,8 @@ namespace TS
             isClicking = true;
 
             Debug.Log("Click on Node 1!");
+            gameManager.UIManager.HelperInfoLabel.text = "Click on Node 1!";
+            gameManager.UIManager.HelperInfoLabel.gameObject.SetActive(true);
         }
 
         private void NodeSelect1(int _nodeID)
@@ -140,7 +185,10 @@ namespace TS
             selectedNode1 = nodes[_nodeID];
             OnNodeSelect -= NodeSelect1;
             OnNodeSelect += NodeSelect2;
+
             Debug.Log("Click on Node 2!");
+            gameManager.UIManager.HelperInfoLabel.text = "Click on Node 2!";
+            gameManager.UIManager.HelperInfoLabel.gameObject.SetActive(true);
         }
 
         private void NodeSelect2(int _nodeID)
@@ -154,6 +202,9 @@ namespace TS
             selectedNode2 = nodes[_nodeID];
             OnNodeSelect -= NodeSelect2;
 
+            gameManager.UIManager.HelperInfoLabel.gameObject.SetActive(false);
+            gameManager.UIManager.ModeInfoLabel.gameObject.SetActive(false);
+
             OnNodeClickComplete?.Invoke(selectedNode1, selectedNode2);
 
             OnNodeClickComplete = null;
@@ -162,6 +213,17 @@ namespace TS
             selectedNode2 = null;
 
             isClicking = false;
+        }
+
+        private void CancelSelection()
+        {
+            isClicking = false;
+
+            OnNodeSelect -= NodeSelect1;
+            OnNodeSelect -= NodeSelect2;
+
+            gameManager.UIManager.ModeInfoLabel.gameObject.SetActive(false);
+            gameManager.UIManager.HelperInfoLabel.gameObject.SetActive(false);
         }
 
         #endregion
@@ -186,13 +248,19 @@ namespace TS
             if (weightA == -1 || weightB == -1)
             {
                 Debug.Log("Nodes aren't connected directly");
+                gameManager.UIManager.HelperInfoLabel.text = "Nodes aren't connected directly";
+                gameManager.UIManager.HelperInfoLabel.gameObject.SetActive(true);
                 return;
             }
 
             if (weightA != weightB)
                 Debug.LogWarning($"Weight discrepancies! {weightA} & {weightB}");
             else
+            {
                 Debug.Log($"Weight between {nodeA.NodeID} and {nodeB.NodeID} is {weightA}");
+                gameManager.UIManager.HelperInfoLabel.text = $"Weight : {weightA}";
+                gameManager.UIManager.HelperInfoLabel.gameObject.SetActive(true);
+            }
         }
 
         #region Shortest Path
@@ -287,6 +355,12 @@ namespace TS
 
             while (currentNode != nodeA)
             {
+                if (currentNode == null)
+                {
+                    Debug.Log("No path found!");
+                    return null;
+                }
+
                 NodeInfo nodeParentInfo = nodeParentInfos[currentNode];
 
                 resultPath.Add(currentNode);
