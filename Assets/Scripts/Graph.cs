@@ -159,7 +159,7 @@ namespace TS
                 return;
             }
 
-            OnNodeClickComplete += GetShortestPath;
+            OnNodeClickComplete += HighlightShortestPath;
             SelectNodes();
 
             gameManager.UIManager.ModeInfoLabel.text = "Find Shortest Path";
@@ -265,18 +265,23 @@ namespace TS
 
         #region Shortest Path
 
-        private void GetShortestPath(Node nodeA, Node nodeB)
+        private void HighlightShortestPath(Node nodeA, Node nodeB)
+        {
+            HighlightPath(GetShortestPath(nodeA, nodeB));
+        }
+
+        public List<Node> GetShortestPath(Node nodeA, Node nodeB)
         {
             List<Node> resultPath = DijkstraShortestPath(nodeA, nodeB);
 
             if (resultPath == null)
-                return;
+                return null;
 
             resultPath.Add(nodeA);
 
             resultPath.Reverse();
 
-            HighlightPath(resultPath);
+            return resultPath;
         }
 
         private List<Node> DijkstraShortestPath(Node nodeA, Node nodeB)
@@ -375,7 +380,7 @@ namespace TS
 
         #region Path Highlight
 
-        private void HighlightPath(List<Node> nodePath)
+        public void HighlightPath(List<Node> nodePath)
         {
             RemoveAllNodeHighlights();
 
@@ -393,7 +398,7 @@ namespace TS
             }
         }
 
-        private void RemoveAllNodeHighlights()
+        public void RemoveAllNodeHighlights()
         {
             foreach (Node node in nodes)
             {
@@ -408,6 +413,38 @@ namespace TS
         }
 
         #endregion
+
+        public Node GetRandomNode()
+        {
+            if (nodes.Count > 1)
+            {
+                return nodes[Random.Range(0, nodes.Count)];
+            }
+
+            return null;
+        }
+
+        public Node GetRandomNode(Node _nodeA)
+        {
+            Node node;
+            if (nodes.Count > 1)
+            {
+                do
+                {
+                    node = nodes[Random.Range(0, nodes.Count)];
+                }
+                while (node == _nodeA);
+
+                return node;
+            }
+
+            return null;
+        }
+
+        public bool IsGraphReady()
+        {
+            return nodes.Count > 2;
+        }
     }
 
     public class NodeInfo

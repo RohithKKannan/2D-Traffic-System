@@ -2,9 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+namespace TS
 {
-    [SerializeField] private UIManager uIManager;
+    public class GameManager : MonoBehaviour
+    {
+        [SerializeField] private UIManager uIManager;
+        [SerializeField] private Graph graph;
 
-    public UIManager UIManager => uIManager;
+        public UIManager UIManager => uIManager;
+        public Graph Graph => graph;
+    }
 }
