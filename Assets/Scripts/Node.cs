@@ -101,6 +101,11 @@ namespace TS
             weights.RemoveAt(index);
         }
 
+        public bool CheckIfNodeIsAdjacent(Node _node2)
+        {
+            return adjacentNodes.Contains(_node2);
+        }
+
         public void HighlightLine(Node _node2)
         {
             if (!adjacentNodes.Contains(_node2))

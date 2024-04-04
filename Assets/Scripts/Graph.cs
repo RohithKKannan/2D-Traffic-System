@@ -231,13 +231,11 @@ namespace TS
         private void DrawLine(Node nodeA, Node nodeB)
         {
             nodeA.AddAdjacentNode(nodeB);
-            nodeB.AddAdjacentNode(nodeA);
         }
 
         private void RemoveLine(Node nodeA, Node nodeB)
         {
             nodeA.RemoveAdjacentNode(nodeB);
-            nodeB.RemoveAdjacentNode(nodeA);
         }
 
         private void GetWeight(Node nodeA, Node nodeB)

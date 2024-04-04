@@ -53,9 +53,6 @@ namespace TS
             DecideDestinationPoint();
             DecideShortestPath();
 
-            if (highlightPath)
-                carManager.GameManager.Graph.HighlightPath(path);
-
             StartJourney();
         }
 
@@ -111,6 +108,9 @@ namespace TS
             }
 
             path = carManager.GameManager.Graph.GetShortestPath(spawnNode, destinationNode);
+
+            if (highlightPath)
+                carManager.GameManager.Graph.HighlightPath(path);
         }
 
         private void StartJourney()
@@ -125,13 +125,13 @@ namespace TS
             nextNode = 1;
             totalNodes = path.Count;
 
-            isMoving = true;
-
             GoToNextNode();
         }
 
         private void GoToNextNode()
         {
+            isMoving = false;
+
             if (nextNode == totalNodes)
             {
                 DestinationReached();
@@ -140,7 +140,7 @@ namespace TS
 
             Node node = path[nextNode];
 
-            if (node == null)
+            if (node == null || !path[nextNode - 1].CheckIfNodeIsAdjacent(path[nextNode]))
             {
                 Debug.Log("Path interrupted! Finding another way");
                 FindAlternatePath();
@@ -151,6 +151,8 @@ namespace TS
             nextNode++;
 
             SetDestination(node.transform.position);
+
+            isMoving = true;
         }
 
         private void FindAlternatePath()
