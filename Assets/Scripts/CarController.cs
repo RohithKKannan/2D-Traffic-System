@@ -7,7 +7,7 @@ namespace TS
     [RequireComponent(typeof(Rigidbody2D))]
     public class CarController : MonoBehaviour
     {
-        [SerializeField] private GameManager gameManager;
+        [SerializeField] private CarManager carManager;
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float minDistance = 0.05f;
 
@@ -35,17 +35,18 @@ namespace TS
             destination = _destination;
         }
 
+        public void SetCarManager(CarManager _carManager)
+        {
+            carManager = _carManager;
+        }
+
         private void MoveTowardsDestination()
         {
             rb.velocity = (destination - transform.position).normalized * moveSpeed;
         }
 
-        [ContextMenu("Begin Journey!")]
-        private void BeginRandomJourney()
+        public void BeginRandomJourney()
         {
-            if (!gameManager.Graph.IsGraphReady())
-                return;
-
             if (spawnNode == null)
                 DecideSpawnPoint();
 
@@ -53,7 +54,7 @@ namespace TS
             DecideShortestPath();
 
             if (highlightPath)
-                gameManager.Graph.HighlightPath(path);
+                carManager.GameManager.Graph.HighlightPath(path);
 
             StartJourney();
         }
@@ -64,9 +65,9 @@ namespace TS
             highlightPath = !highlightPath;
 
             if (!highlightPath)
-                gameManager.Graph.RemoveAllNodeHighlights();
+                carManager.GameManager.Graph.RemoveAllNodeHighlights();
             else
-                gameManager.Graph.HighlightPath(path);
+                carManager.GameManager.Graph.HighlightPath(path);
         }
 
         private void DestinationReached()
@@ -76,7 +77,7 @@ namespace TS
             spawnNode = destinationNode;
 
             path.Clear();
-            nextNode = 0;
+            nextNode = 1;
             totalNodes = 0;
             destinationNode = null;
 
@@ -85,7 +86,7 @@ namespace TS
 
         private void DecideSpawnPoint()
         {
-            spawnNode = gameManager.Graph.GetRandomNode();
+            spawnNode = carManager.GameManager.Graph.GetRandomNode();
 
             if (spawnNode == null)
             {
@@ -98,10 +99,7 @@ namespace TS
 
         private void DecideDestinationPoint()
         {
-            destinationNode = gameManager.Graph.GetRandomNode(spawnNode);
-
-            if (destinationNode == null)
-                Debug.Log("No destination node!");
+            destinationNode = carManager.GameManager.Graph.GetRandomNode(spawnNode);
         }
 
         private void DecideShortestPath()
@@ -112,10 +110,7 @@ namespace TS
                 return;
             }
 
-            path = gameManager.Graph.GetShortestPath(spawnNode, destinationNode);
-
-            if (path == null)
-                Debug.Log("No path found!");
+            path = carManager.GameManager.Graph.GetShortestPath(spawnNode, destinationNode);
         }
 
         private void StartJourney()
@@ -123,6 +118,7 @@ namespace TS
             if (path == null)
             {
                 Debug.Log("No path found!");
+                BeginRandomJourney();
                 return;
             }
 
@@ -142,20 +138,30 @@ namespace TS
                 return;
             }
 
-            Node node = path[nextNode++];
+            Node node = path[nextNode];
 
             if (node == null)
             {
-                Debug.Log("Path interrupted!");
-
-                spawnNode = null;
-                destinationNode = null;
-                DestinationReached();
-
+                Debug.Log("Path interrupted! Finding another way");
+                FindAlternatePath();
+                StartJourney();
                 return;
             }
 
+            nextNode++;
+
             SetDestination(node.transform.position);
+        }
+
+        private void FindAlternatePath()
+        {
+            spawnNode = path[nextNode - 1];
+
+            path.Clear();
+            nextNode = 0;
+            totalNodes = 0;
+
+            DecideShortestPath();
         }
 
         private void FixedUpdate()

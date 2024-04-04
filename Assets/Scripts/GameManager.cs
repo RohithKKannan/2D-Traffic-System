@@ -8,8 +8,10 @@ namespace TS
     {
         [SerializeField] private UIManager uIManager;
         [SerializeField] private Graph graph;
+        [SerializeField] private CarManager carManager;
 
         public UIManager UIManager => uIManager;
         public Graph Graph => graph;
+        public CarManager CarManager => carManager;
     }
 }
