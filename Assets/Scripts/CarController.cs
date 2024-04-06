@@ -19,6 +19,8 @@ namespace TS
 
         private int nextNode;
         private int totalNodes;
+        private int retryCount;
+        private int retryLimit = 5;
 
         private bool isMoving;
         private bool highlightPath;
@@ -107,6 +109,7 @@ namespace TS
             if (destinationNode == null)
             {
                 Debug.Log("No destination node!");
+                path = null;
                 return;
             }
 
@@ -115,9 +118,17 @@ namespace TS
 
         private void StartJourney()
         {
+            if (retryCount > retryLimit)
+            {
+                Debug.Log("Unable to find valid path! Destroying car!");
+                carManager.RemoveCar(this);
+                return;
+            }
+
             if (path == null)
             {
                 Debug.Log("No path found!");
+                retryCount++;
                 BeginRandomJourney();
                 return;
             }
