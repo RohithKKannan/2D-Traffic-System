@@ -27,7 +27,7 @@ namespace TS
 
         private void SpawnCar()
         {
-            if (!gameManager.Graph.IsGraphReady())
+            if (!gameManager.Graph.IsGraphEmpty())
                 return;
 
             CarController newCar = GameObject.Instantiate<CarController>(carPrefab);
