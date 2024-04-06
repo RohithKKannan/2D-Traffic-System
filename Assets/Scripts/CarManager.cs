@@ -8,6 +8,7 @@ namespace TS
     {
         [SerializeField] private GameManager gameManager;
         [SerializeField] private CarController carPrefab;
+        [SerializeField] private Transform carParent;
 
         private List<CarController> cars = new();
 
@@ -30,7 +31,7 @@ namespace TS
             if (gameManager.Graph.IsGraphEmpty())
                 return;
 
-            CarController newCar = GameObject.Instantiate<CarController>(carPrefab);
+            CarController newCar = GameObject.Instantiate<CarController>(carPrefab, carParent);
             Debug.Log("Instantiating car!");
 
             cars.Add(newCar);
