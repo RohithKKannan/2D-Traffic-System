@@ -133,6 +133,8 @@ namespace TS
                 return;
             }
 
+            retryCount = 0;
+
             nextNode = 1;
             totalNodes = path.Count;
 
