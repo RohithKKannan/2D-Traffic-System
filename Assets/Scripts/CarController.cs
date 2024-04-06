@@ -151,7 +151,7 @@ namespace TS
 
             Node node = path[nextNode];
 
-            if (node == null)
+            if (node == null || !path[nextNode - 1].CheckIfNodeIsAdjacent(path[nextNode]))
             {
                 Debug.Log("Path interrupted! Finding another way");
                 FindAlternatePath();
@@ -173,6 +173,9 @@ namespace TS
             totalNodes = 0;
 
             DecideShortestPath();
+
+            if (highlightPath)
+                carManager.GameManager.Graph.HighlightPath(path);
         }
 
         private void FixedUpdate()
