@@ -12,6 +12,7 @@ namespace TS
     {
         [SerializeField] private GameManager gameManager;
         [SerializeField] private Node nodePrefab;
+        [SerializeField] private Transform nodeParent;
 
         private List<Node> nodes = new();
         private int nodeCount;
@@ -56,7 +57,7 @@ namespace TS
                 return;
             }
 
-            Node newNode = GameObject.Instantiate<Node>(nodePrefab);
+            Node newNode = GameObject.Instantiate<Node>(nodePrefab, nodeParent);
             newNode.SetGraph(this);
             newNode.SetNodeID(nodeCount++);
 
@@ -414,34 +415,34 @@ namespace TS
 
         public Node GetRandomNode()
         {
-            if (nodes.Count > 1)
-            {
-                return nodes[Random.Range(0, nodes.Count)];
-            }
+            if (nodes.Count < 1)
+                return null;
 
-            return null;
+            return nodes[Random.Range(0, nodes.Count)];
         }
 
         public Node GetRandomNode(Node _nodeA)
         {
+            if (nodes.Count < 2)
+                return null;
+
+            Debug.Log("Getting random node other than " + _nodeA.NodeID);
+
             Node node;
-            if (nodes.Count > 1)
+            do
             {
-                do
-                {
-                    node = nodes[Random.Range(0, nodes.Count)];
-                }
-                while (node == _nodeA);
-
-                return node;
+                node = nodes[Random.Range(0, nodes.Count)];
             }
+            while (node == _nodeA);
 
-            return null;
+            Debug.Log("Random node " + node.NodeID);
+
+            return node;
         }
 
-        public bool IsGraphReady()
+        public bool IsGraphEmpty()
         {
-            return nodes.Count > 2;
+            return nodes.Count < 1;
         }
     }
 

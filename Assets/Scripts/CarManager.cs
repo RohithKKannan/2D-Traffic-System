@@ -8,6 +8,7 @@ namespace TS
     {
         [SerializeField] private GameManager gameManager;
         [SerializeField] private CarController carPrefab;
+        [SerializeField] private Transform carParent;
 
         private List<CarController> cars = new();
 
@@ -27,14 +28,16 @@ namespace TS
 
         private void SpawnCar()
         {
-            if (!gameManager.Graph.IsGraphEmpty())
+            if (gameManager.Graph.IsGraphEmpty())
                 return;
 
-            CarController newCar = GameObject.Instantiate<CarController>(carPrefab);
-            newCar.SetCarManager(this);
-            newCar.BeginRandomJourney();
+            CarController newCar = GameObject.Instantiate<CarController>(carPrefab, carParent);
+            Debug.Log("Instantiating car!");
 
             cars.Add(newCar);
+
+            newCar.SetCarManager(this);
+            newCar.BeginRandomJourney();
         }
 
         private void RemoveCar()
@@ -45,6 +48,15 @@ namespace TS
             CarController car = cars[cars.Count - 1];
             cars.Remove(car);
             GameObject.Destroy(car.gameObject);
+        }
+
+        public void RemoveCar(CarController _car)
+        {
+            if (cars.Count == 0)
+                return;
+
+            cars.Remove(_car);
+            GameObject.Destroy(_car.gameObject);
         }
     }
 }
