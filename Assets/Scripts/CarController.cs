@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace TS
@@ -16,11 +17,13 @@ namespace TS
         private Vector3 destination = new();
         private Node spawnNode;
         private Node destinationNode;
+        private Node currentNode;
 
-        private int nextNode;
+        private int nextNodeIndex;
         private int totalNodes;
         private int retryCount;
         private int retryLimit = 5;
+        private int timeToWait = 500; // in milliseconds
 
         private bool isMoving;
         private bool highlightPath;
@@ -30,6 +33,12 @@ namespace TS
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
+        }
+
+        private void OnDestroy()
+        {
+            if (currentNode != null && currentNode.IsOccupied)
+                currentNode.SetNodeOccupancy(false);
         }
 
         private void SetDestination(Vector3 _destination)
@@ -76,7 +85,7 @@ namespace TS
             spawnNode = destinationNode;
 
             path.Clear();
-            nextNode = 1;
+            nextNodeIndex = 1;
             totalNodes = 0;
             destinationNode = null;
 
@@ -85,7 +94,16 @@ namespace TS
 
         private void DecideSpawnPoint()
         {
-            spawnNode = carManager.GameManager.Graph.GetRandomNode();
+            do
+            {
+                if (retryCount > retryLimit)
+                    return;
+
+                spawnNode = carManager.GameManager.Graph.GetRandomNode();
+                retryCount++;
+            } while (spawnNode.IsOccupied);
+
+            retryCount = 0;
 
             if (spawnNode == null)
             {
@@ -94,6 +112,9 @@ namespace TS
             }
 
             transform.position = spawnNode.transform.position;
+
+            currentNode = spawnNode;
+            currentNode.SetNodeOccupancy(true);
         }
 
         private void DecideDestinationPoint()
@@ -135,25 +156,25 @@ namespace TS
 
             retryCount = 0;
 
-            nextNode = 1;
+            nextNodeIndex = 1;
             totalNodes = path.Count;
 
             GoToNextNode();
         }
 
-        private void GoToNextNode()
+        private async void GoToNextNode()
         {
             isMoving = false;
 
-            if (nextNode == totalNodes)
+            if (nextNodeIndex == totalNodes)
             {
                 DestinationReached();
                 return;
             }
 
-            Node node = path[nextNode];
+            Node nextNode = path[nextNodeIndex];
 
-            if (node == null || !path[nextNode - 1].CheckIfNodeIsAdjacent(path[nextNode]))
+            if (nextNode == null || !currentNode.CheckIfNodeIsAdjacent(nextNode))
             {
                 Debug.Log("Path interrupted! Finding another way");
                 FindAlternatePath();
@@ -161,19 +182,28 @@ namespace TS
                 return;
             }
 
-            nextNode++;
+            nextNodeIndex++;
 
-            SetDestination(node.transform.position);
+            SetDestination(nextNode.transform.position);
+
+            while (nextNode.IsOccupied)
+            {
+                await Task.Delay(timeToWait);
+            }
 
             isMoving = true;
+
+            currentNode.SetNodeOccupancy(false);
+            nextNode.SetNodeOccupancy(true);
+
+            currentNode = nextNode;
         }
 
         private void FindAlternatePath()
         {
-            spawnNode = path[nextNode - 1];
+            spawnNode = currentNode;
 
             path.Clear();
-            nextNode = 0;
             totalNodes = 0;
 
             DecideShortestPath();

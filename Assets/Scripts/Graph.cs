@@ -408,7 +408,6 @@ namespace TS
         private void HighlightNodeLine(Node nodeA, Node nodeB)
         {
             nodeA.HighlightLine(nodeB);
-            nodeB.HighlightLine(nodeA);
         }
 
         #endregion

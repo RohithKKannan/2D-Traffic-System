@@ -17,6 +17,7 @@ namespace TS
 
         private int nodeID;
         private bool isDragging;
+        private bool isOccupied;
         private Vector3 startPosition;
         private Vector3 dragOffset;
 
@@ -28,6 +29,7 @@ namespace TS
         private Vector3 mousePosition;
 
         public int NodeID => nodeID;
+        public bool IsOccupied => isOccupied;
         public List<Node> AdjacentNodes => adjacentNodes;
         public List<Node> IndirectAdjacentNodes => indirectAdjacentNodes;
         public List<float> Weights => weights;
@@ -56,6 +58,11 @@ namespace TS
         {
             nodeID = _nodeID;
             nodeLabel.text = nodeID.ToString();
+        }
+
+        public void SetNodeOccupancy(bool _nodeOccupancy)
+        {
+            isOccupied = _nodeOccupancy;
         }
 
         public void AddAdjacentNode(Node _node)

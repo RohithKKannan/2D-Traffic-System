@@ -32,7 +32,6 @@ namespace TS
                 return;
 
             CarController newCar = GameObject.Instantiate<CarController>(carPrefab, carParent);
-            Debug.Log("Instantiating car!");
 
             cars.Add(newCar);
 
