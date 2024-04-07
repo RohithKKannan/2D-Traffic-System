@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using Unity.VisualScripting;
 
 namespace TS
 {
@@ -22,6 +21,7 @@ namespace TS
         private Vector3 dragOffset;
 
         private List<Node> adjacentNodes = new();
+        private List<Node> indirectAdjacentNodes = new();
         private List<float> weights = new();
         private List<LineRenderer> lineRenderers = new();
 
@@ -29,14 +29,21 @@ namespace TS
 
         public int NodeID => nodeID;
         public List<Node> AdjacentNodes => adjacentNodes;
+        public List<Node> IndirectAdjacentNodes => indirectAdjacentNodes;
         public List<float> Weights => weights;
 
         private void OnDestroy()
         {
             while (adjacentNodes.Count > 0)
             {
-                adjacentNodes[adjacentNodes.Count - 1].RemoveAdjacentNode(this);
                 RemoveAdjacentNode(adjacentNodes[adjacentNodes.Count - 1]);
+            }
+
+            while (indirectAdjacentNodes.Count > 0)
+            {
+                Node node = indirectAdjacentNodes[indirectAdjacentNodes.Count - 1];
+                node.RemoveAdjacentNode(this);
+                indirectAdjacentNodes.Remove(node);
             }
         }
 
@@ -64,7 +71,20 @@ namespace TS
             adjacentNodes.Add(_node);
             weights.Add(_weight);
 
+            _node.AddIndirectAdjacentNode(this);
+
             lineRenderers.Add(DrawLineToNode(_node));
+        }
+
+        public void AddIndirectAdjacentNode(Node _node)
+        {
+            if (indirectAdjacentNodes.Contains(_node))
+            {
+                Debug.Log("Node already connected!");
+                return;
+            }
+
+            indirectAdjacentNodes.Add(_node);
         }
 
         private LineRenderer DrawLineToNode(Node _node2)

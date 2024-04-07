@@ -25,7 +25,7 @@ namespace TS
         private bool isMoving;
         private bool highlightPath;
 
-        [SerializeField] private List<Node> path = new();
+        private List<Node> path = new();
 
         private void Awake()
         {
