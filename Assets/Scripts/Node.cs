@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.Threading;
 
 namespace TS
 {
@@ -28,11 +29,14 @@ namespace TS
 
         private Vector3 mousePosition;
 
+        private SemaphoreSlim nodeOccupancy = new SemaphoreSlim(1, 1);
+
         public int NodeID => nodeID;
         public bool IsOccupied => isOccupied;
         public List<Node> AdjacentNodes => adjacentNodes;
         public List<Node> IndirectAdjacentNodes => indirectAdjacentNodes;
         public List<float> Weights => weights;
+        public SemaphoreSlim NodeOccupancy => nodeOccupancy;
 
         private void OnDestroy()
         {

@@ -35,6 +35,7 @@ namespace TS
 
             cars.Add(newCar);
 
+            newCar.SetCarIndex(cars.Count);
             newCar.SetCarManager(this);
             newCar.BeginRandomJourney();
         }

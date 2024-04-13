@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -19,31 +21,46 @@ namespace TS
         private Node destinationNode;
         private Node currentNode;
 
+        private int carIndex;
         private int nextNodeIndex;
         private int totalNodes;
         private int retryCount;
         private int retryLimit = 5;
-        private int timeToWait = 500; // in milliseconds
 
         private bool isMoving;
         private bool highlightPath;
 
         private List<Node> path = new();
 
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private CancellationToken cancellationToken;
+
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
+            cancellationToken = cancellationTokenSource.Token;
         }
 
         private void OnDestroy()
         {
             if (currentNode != null && currentNode.IsOccupied)
+            {
+                currentNode.NodeOccupancy.Release();
                 currentNode.SetNodeOccupancy(false);
+
+                cancellationTokenSource.Cancel();
+                cancellationTokenSource.Dispose();
+            }
         }
 
         private void SetDestination(Vector3 _destination)
         {
             destination = _destination;
+        }
+
+        public void SetCarIndex(int _carIndex)
+        {
+            carIndex = _carIndex;
         }
 
         public void SetCarManager(CarManager _carManager)
@@ -92,7 +109,7 @@ namespace TS
             BeginRandomJourney();
         }
 
-        private void DecideSpawnPoint()
+        private async void DecideSpawnPoint()
         {
             do
             {
@@ -114,6 +131,17 @@ namespace TS
             transform.position = spawnNode.transform.position;
 
             currentNode = spawnNode;
+
+            try
+            {
+                await currentNode.NodeOccupancy.WaitAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log($"Car {carIndex} await cancelled!");
+                return;
+            }
+
             currentNode.SetNodeOccupancy(true);
         }
 
@@ -159,10 +187,10 @@ namespace TS
             nextNodeIndex = 1;
             totalNodes = path.Count;
 
-            GoToNextNode();
+            GoToNextNode(cancellationToken);
         }
 
-        private async void GoToNextNode()
+        private async void GoToNextNode(CancellationToken _cancellationToken)
         {
             isMoving = false;
 
@@ -182,19 +210,26 @@ namespace TS
                 return;
             }
 
+            try
+            {
+                await nextNode.NodeOccupancy.WaitAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log($"Car {carIndex} await cancelled!");
+                return;
+            }
+
+            nextNode.SetNodeOccupancy(true);
+
+            currentNode.NodeOccupancy.Release();
+            currentNode.SetNodeOccupancy(false);
+
             nextNodeIndex++;
 
             SetDestination(nextNode.transform.position);
 
-            while (nextNode.IsOccupied)
-            {
-                await Task.Delay(timeToWait);
-            }
-
             isMoving = true;
-
-            currentNode.SetNodeOccupancy(false);
-            nextNode.SetNodeOccupancy(true);
 
             currentNode = nextNode;
         }
@@ -222,7 +257,7 @@ namespace TS
             else
             {
                 rb.velocity = Vector2.zero;
-                GoToNextNode();
+                GoToNextNode(cancellationToken);
             }
         }
     }

@@ -425,16 +425,12 @@ namespace TS
             if (nodes.Count < 2)
                 return null;
 
-            Debug.Log("Getting random node other than " + _nodeA.NodeID);
-
             Node node;
             do
             {
                 node = nodes[Random.Range(0, nodes.Count)];
             }
             while (node == _nodeA);
-
-            Debug.Log("Random node " + node.NodeID);
 
             return node;
         }
