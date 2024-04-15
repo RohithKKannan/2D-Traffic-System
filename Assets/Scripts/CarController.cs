@@ -27,6 +27,8 @@ namespace TS
         private int retryCount;
         private int retryLimit = 5;
 
+        private int timeToWait = 10000;
+
         private bool isMoving;
         private bool highlightPath;
 
@@ -210,9 +212,19 @@ namespace TS
                 return;
             }
 
+            // additonal timer task to destroy car if waiting for node occupancy exceeds timer - maybe temporary?
+            var timeoutTask = Task.Delay(timeToWait, cancellationToken);
+
             try
             {
-                await nextNode.NodeOccupancy.WaitAsync(cancellationToken);
+                var completedTask = await Task.WhenAny(nextNode.NodeOccupancy.WaitAsync(cancellationToken), timeoutTask);
+
+                // completed task is the first task that has returned from WhenAny
+                if (completedTask == timeoutTask)
+                {
+                    Debug.Log($"Car stuck for a long time. Destroying car {carIndex}!");
+                    carManager.RemoveCar(this);
+                }
             }
             catch (OperationCanceledException)
             {
