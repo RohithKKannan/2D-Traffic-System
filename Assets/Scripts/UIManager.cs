@@ -16,6 +16,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button shortestPathButton;
     [SerializeField] private Button spawnCarButton;
     [SerializeField] private Button removeCarButton;
+    [SerializeField] private Button buildRoadButton;
 
     [Header("Text")]
     [SerializeField] private TMP_Text modeInfoLabel;
@@ -30,6 +31,7 @@ public class UIManager : MonoBehaviour
     public Button ShortestPathButton => shortestPathButton;
     public Button SpawnCarButton => spawnCarButton;
     public Button RemoveCarButton => removeCarButton;
+    public Button BuildRoadButton => buildRoadButton;
 
     public TMP_Text ModeInfoLabel => modeInfoLabel;
     public TMP_Text HelperInfoLabel => helperInfoLabel;
